@@ -3,6 +3,7 @@ const router = express.Router();
 const UserInfo = require("../model/userinfo");
 const bcrypt = require("bcryptjs");
 const Restaurantinfo = require("../model/restaurantInfo");
+const MediatorInfo = require("../model/mediatorInfo");
 const hashpassword = require("../middleware/hashpassword");
 const userhashpassword = require("../middleware/userhashpassword");
 const { io } = require("socket.io-client");
@@ -13,6 +14,7 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const { userInfo } = require("os");
 const { truncate } = require("fs/promises");
+const mhashpassword = require("../middleware/mhashpassword");
 
 router.post("/py", async (req, res) => {
     const spawner = require("child_process").spawn;
@@ -37,6 +39,81 @@ router.post("/py", async (req, res) => {
       }
     });
 });
+
+//Mediator Login
+router.post("/mediatorlogin", async (req, res) => {
+  console.log('Mediator Login ', req.body);
+  const { memail, mpass } = req.body;
+  const mediator = await MediatorInfo.findOne({ memail: memail });
+  if (mediator) {
+    if (await bcrypt.compare(mpass, mediator.mpass)) {
+      var token = jwt.sign(
+        { email: mediator.memail, pass: mpass },
+        `${process.env.TOCKEN_PRIVATE_KEY}`
+      );
+
+      res.status(200).send({
+        data: mediator,
+        cookie: token,
+        type: "mediator",
+        message: `Hello ${mediator.mname}, You Logged in successfully!`,
+      });
+    } else
+      res.status(201).send({ message: "Error! : *** Invalid Password ***" });
+  } else {
+    res.status(202).send({ message: "Error! : *** userNotfound ***" });
+  }
+});
+
+//Mediator SignUp
+router.post("/mediatorsignup", mhashpassword ,  async (req, res) => {
+  // console.log("Mediator SignUp " , req.body);
+  const mexist = await MediatorInfo.findOne({ uemail: req.body.memail });
+  if (mexist) res.status(202).send({ message: "Email already exists" });
+  else {
+    const mediator = new MediatorInfo({
+      memail: req.body.memail,
+      mname: req.body.mname,
+      mpass: req.body.mpass,
+    });
+    const data = await mediator.save();
+    res.status(200).send({
+      data: data,
+      message: `Hello, ${data.mname} You Registered Successfully`,
+    });
+  }
+});
+
+//Add Morders
+router.post("/medorder", async (req, res) => {
+  // console.log(req.body);
+  const { uage, ugender, type, chef, city , area , year , month , day , item } = req.body;
+  const mediator = await MediatorInfo.findOne(memail);
+  console.log('Mediator Found --> ', mediator);
+  console.log(req.body);
+  if (mediator) {
+    const data = mediator.morder.push({
+      uage: uage,
+      ugender: ugender,
+      chef: chef,
+      type: type,
+      city: city,
+      area: area,
+      year: year,
+      month: month,
+      day: day,
+      item: item,
+    });
+    const update = await mediator.save();
+    res
+      .status(200)
+      .send({ data: update, message: 'Med-Order Added Sucssessfully !' });
+  } else {
+    res.status(202).send({ message: "Error" });
+  }
+});
+
+
 
 // Sign Up
 router.post("/signup", userhashpassword, async (req, res) => {
