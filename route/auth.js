@@ -91,7 +91,7 @@ router.post("/medorder", async (req, res) => {
 
   const mediator = await MediatorInfo.findOne({ memail: memail });
 
-  if (Object.keys(mediator).length>0 && mediator) {
+  if (Object.keys(mediator).length > 0 && mediator) {
     const data = { uage, ugender, chef, type, city, area, year, month, day, item };
     const update = await mediator.morder.unshift(data);
     mediator.save();
@@ -571,18 +571,27 @@ router.post("/forgot-password", async (req, res) => {
   const link = `http://localhost:5000/reset-password/${olduser._id}/${token}`;
   console.log(link);
 
-  const transporter = nodemailer.createTransport({
-    port: 465,
-    host: "smtp.gmail.com",
-    secure: true,
-    auth: {
-      user: "deepsutariya002@gmail.com",
-      pass: "cdqdmfobnrlnnxao",
-    },
-  });
+  // const transporter = nodemailer.createTransport({
+  //   host: "sandbox.smtp.mailtrap.io",
+  //   port: 2525,
+  //   auth: {
+  //     user: "c33beeeca605d4",
+  //     pass: "50953c2cc2f41f",
+  //   },
+  // });
+
+  var transporter = nodemailer.createTransport({
+      host: "sandbox.smtp.mailtrap.io",
+      port: 2525,
+      auth: {
+        user: "29cf4eb4815259",
+        pass: "54a5247b6a18a4",
+      },
+    });
+
 
   var mailOptions = {
-    from: "deepsutariya002@gmail.com",
+    from: "codewithprogrammer7@gmail.com",
     to: "deepsutariya001@gmail.com",
     subject: "Reset Password",
     html: `<h2>${link}</h2>`,
@@ -590,7 +599,7 @@ router.post("/forgot-password", async (req, res) => {
 
   const info = await transporter.sendMail(mailOptions, function (error, info) {
     if (error) {
-      console.log(error);
+      console.log("-->",error);
     } else {
       res.send("Password Updated");
     }
