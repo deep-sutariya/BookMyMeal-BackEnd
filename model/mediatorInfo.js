@@ -12,11 +12,6 @@ const MediatorSchemaInfo = new Schema(
     mpass: { type: String, required: true },
     morder: [
       {
-        user: {
-          type: mongoose.Schema.ObjectId,
-          ref: "Userinfo",
-          required: true,
-        },
         uage: { type: String, required: false },
         ugender: { type: String, required: false },
         type: { type: String, required: false },
@@ -24,15 +19,15 @@ const MediatorSchemaInfo = new Schema(
         city: { type: String, required: false },
         area: { type: String, required: false },
         year: {
-          type: Number,
+          type: String,
           required: true,
         },
         month: {
-          type: Number,
+          type: String,
           required: true,
         },
-        Day: {
-          type: Number,
+        day: {
+          type: String,
           required: true,
         },
         item: {

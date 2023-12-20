@@ -21,11 +21,11 @@ const io = new Server(server, {
 
 //   event V      
 io.on("connection", (socket) => {
-    console.log(`⚡: ${socket.id} user just connected!`);
+    // console.log(`⚡: ${socket.id} user just connected!`);
     // on connection join all the connected users to my-room for notifications
 
     socket.on("disconnect", () => {
-        console.log(` X : ${socket.id} user just disconnected!`);
+        // console.log(` X : ${socket.id} user just disconnected!`);
         socket.disconnect();
     });
 

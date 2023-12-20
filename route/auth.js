@@ -17,38 +17,38 @@ const { truncate } = require("fs/promises");
 const mhashpassword = require("../middleware/mhashpassword");
 
 router.post("/py", async (req, res) => {
-    const spawner = require("child_process").spawn;
-    const food = req.body.food.toLowerCase();
-    const python_process = spawner("python", ["route/ML/sdp.py", food]);
-    let flag = false;
+  const spawner = require("child_process").spawn;
+  const food = req.body.food.toLowerCase();
+  const python_process = spawner("python", ["route/ML/sdp.py", food]);
+  let flag = false;
 
-    python_process.stdout.on("data", (data) => {
-      data = JSON.parse(data.toString());
-      if (data.length > 0) {
-        flag = true;
-        res.send(data);
-      }
-    });
-    python_process.stderr.on("data", (err) => {
-      console.log(err.toString());
-    });
-    python_process.stdout.on("close", (data) => {
-      console.log("close", data);
-      if (!flag) {
-        res.send({ message: "Currently i am updating! try again later" });
-      }
-    });
+  python_process.stdout.on("data", (data) => {
+    data = JSON.parse(data.toString());
+    if (data.length > 0) {
+      flag = true;
+      res.send(data);
+    }
+  });
+  python_process.stderr.on("data", (err) => {
+    console.log(err.toString());
+  });
+  python_process.stdout.on("close", (data) => {
+    console.log("close", data);
+    if (!flag) {
+      res.send({ message: "Currently i am updating! try again later" });
+    }
+  });
 });
 
 //Mediator Login
 router.post("/mediatorlogin", async (req, res) => {
   console.log('Mediator Login ', req.body);
-  const { memail, mpass } = req.body;
-  const mediator = await MediatorInfo.findOne({ memail: memail });
+  const { uemail, upass } = req.body;
+  const mediator = await MediatorInfo.findOne({ memail: uemail });
   if (mediator) {
-    if (await bcrypt.compare(mpass, mediator.mpass)) {
+    if (await bcrypt.compare(upass, mediator.mpass)) {
       var token = jwt.sign(
-        { email: mediator.memail, pass: mpass },
+        { email: mediator.memail, pass: upass },
         `${process.env.TOCKEN_PRIVATE_KEY}`
       );
 
@@ -66,7 +66,7 @@ router.post("/mediatorlogin", async (req, res) => {
 });
 
 //Mediator SignUp
-router.post("/mediatorsignup", mhashpassword ,  async (req, res) => {
+router.post("/mediatorsignup", mhashpassword, async (req, res) => {
   // console.log("Mediator SignUp " , req.body);
   const mexist = await MediatorInfo.findOne({ uemail: req.body.memail });
   if (mexist) res.status(202).send({ message: "Email already exists" });
@@ -86,28 +86,16 @@ router.post("/mediatorsignup", mhashpassword ,  async (req, res) => {
 
 //Add Morders
 router.post("/medorder", async (req, res) => {
-  // console.log(req.body);
-  const { uage, ugender, type, chef, city , area , year , month , day , item } = req.body;
-  const mediator = await MediatorInfo.findOne(memail);
-  console.log('Mediator Found --> ', mediator);
-  console.log(req.body);
-  if (mediator) {
-    const data = mediator.morder.push({
-      uage: uage,
-      ugender: ugender,
-      chef: chef,
-      type: type,
-      city: city,
-      area: area,
-      year: year,
-      month: month,
-      day: day,
-      item: item,
-    });
-    const update = await mediator.save();
-    res
-      .status(200)
-      .send({ data: update, message: 'Med-Order Added Sucssessfully !' });
+  const { uage, ugender, type, chef, city, area, year, month, day, item } = req.body.formData;
+  const { memail } = req.body
+
+  const mediator = await MediatorInfo.findOne({ memail: memail });
+
+  if (Object.keys(mediator).length>0 && mediator) {
+    const data = { uage, ugender, chef, type, city, area, year, month, day, item };
+    const update = await mediator.morder.unshift(data);
+    mediator.save();
+    res.status(200).send({ data: update, message: 'Med-Order Added Sucssessfully !' });
   } else {
     res.status(202).send({ message: "Error" });
   }
