@@ -101,6 +101,88 @@ router.post("/medorder", async (req, res) => {
   }
 });
 
+router.post("/requestrestaurant", async (req, res) => {
+  const { mname, memail, resid } = req.body;
+  const restaurant = await Restaurantinfo.findById({ _id: resid });
+  if (restaurant) {
+    const data = restaurant.requests;
+
+    var flag = false;
+    data.forEach((req) => {
+      if (req.memail === memail) {
+        flag = true;
+      }
+    })
+
+    if (flag) {
+      res.status(202).send({ message: 'Request Is On Pending State!' });
+    }
+    else {
+      restaurant.requests.unshift({ mname, memail });
+      await restaurant.save();
+      res.status(200).send({ message: 'Request Sent Sucssessfully !' });
+    }
+  }
+});
+
+
+router.post("/acceptrequest", async (req, res) => {
+  const { memail, mname, resid } = req.body;
+  const restaurant = await Restaurantinfo.findById({ _id: resid });
+  const mediator = await MediatorInfo.find({ memail: memail });
+  if (restaurant && mediator) {
+    restaurant.mediator = { memail, mname };
+    const updatedreq = restaurant.requests.filter(req => req.memail !== memail);
+    restaurant.requests = updatedreq;
+    await restaurant.save();
+    
+    const { remail, rname, rphone } = restaurant;
+    await MediatorInfo.updateOne(
+      { memail: memail },
+      { $set: { restaurant: { remail, rname, rphone } } }
+    );
+
+    res.status(200).send({ message: 'Mediator added' });
+  }
+  else {
+    res.status(202).send({ message: 'Error Accured' });
+  }
+})
+
+
+router.post("/declinerequest", async (req, res) => {
+  const { memail, mname, resid } = req.body;
+  const restaurant = await Restaurantinfo.findById({ _id: resid });
+  if (restaurant) {
+    const updatedreq = restaurant.requests.filter(req => req.memail !== memail);
+    restaurant.requests = updatedreq;
+    await restaurant.save();
+    res.status(200).send({ message: 'Request Declined' });
+  }
+  else {
+    res.status(202).send({ message: 'Error Accured' });
+  }
+})
+
+
+router.post("/removemediator", async (req, res) => {
+  const { memail, resid } = req.body;
+  const restaurant = await Restaurantinfo.findById({ _id: resid });
+  if (restaurant) {
+    restaurant.mediator = [];
+    await restaurant.save();
+
+    await MediatorInfo.updateOne(
+      { memail: memail },
+      { $set: { restaurant: [] } }
+    );
+
+    res.status(200).send({ message: 'Mediator Removed' });
+  }
+  else {
+    res.status(202).send({ message: 'Error Accured' });
+  }
+})
 
 
 // Sign Up
@@ -581,13 +663,13 @@ router.post("/forgot-password", async (req, res) => {
   // });
 
   var transporter = nodemailer.createTransport({
-      host: "sandbox.smtp.mailtrap.io",
-      port: 2525,
-      auth: {
-        user: "29cf4eb4815259",
-        pass: "54a5247b6a18a4",
-      },
-    });
+    host: "sandbox.smtp.mailtrap.io",
+    port: 2525,
+    auth: {
+      user: "29cf4eb4815259",
+      pass: "54a5247b6a18a4",
+    },
+  });
 
 
   var mailOptions = {
@@ -599,7 +681,7 @@ router.post("/forgot-password", async (req, res) => {
 
   const info = await transporter.sendMail(mailOptions, function (error, info) {
     if (error) {
-      console.log("-->",error);
+      console.log("-->", error);
     } else {
       res.send("Password Updated");
     }

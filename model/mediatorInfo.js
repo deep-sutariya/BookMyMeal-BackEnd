@@ -6,7 +6,7 @@ const MediatorSchemaInfo = new Schema(
     mname: {
       type: String,
       required: [true, "Provide Name !"],
-      trim : true,
+      trim: true,
     },
     memail: { type: String, required: true },
     mpass: { type: String, required: true },
@@ -36,6 +36,13 @@ const MediatorSchemaInfo = new Schema(
         },
       },
     ],
+    restaurant: [
+      {
+        rname: { type: String, required: false, trim: true },
+        remail: { type: String, required: false },
+        rphone: { type: String, required: false },
+      }
+    ]
   },
   { timestamps: true }
 );

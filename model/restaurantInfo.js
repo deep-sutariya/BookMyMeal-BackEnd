@@ -28,6 +28,18 @@ const RestaurantInfoSchema = new Schema({
     rating: {type: Number,default: 0},
     totalrating: {type: Number, default: 0},
     ratingcount: {type: Number, default: 0},
+    mediator: [
+        {
+            mname: { type: String, required: false, trim : true },
+            memail: { type: String, required: false },
+        },
+    ],
+    requests: [
+        { 
+            mname: { type: String, required: false, trim : true },
+            memail: { type: String, required: false },
+        }
+    ],
 
 }, { timestamps: true });
 
