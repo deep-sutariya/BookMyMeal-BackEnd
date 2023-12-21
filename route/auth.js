@@ -402,6 +402,25 @@ router.post("/saveorder", async (req, res) => {
   res.status(200).send({ message: `${user.uname}, Your Order Is Placed` });
 });
 
+
+//Get Morders
+router.post("/getmedorder", async (req, res) => {
+  const { memail } = req.body;
+  console.log('Memial ' , memail)
+  const mediator = await MediatorInfo.findOne({ memail: memail });
+  console.log('Media' , mediator);
+
+  if (mediator && Object.keys(mediator).length > 0) {
+    const morders = await mediator.morder;
+    // console.log('Morders ' , morders)
+    res
+      .status(200)
+      .send({ data: morders, message: "Med-Order Added Sucssessfully !" });
+  } else {
+    res.status(202).send({ message: "Error" });
+  }
+});
+
 router.post("/getuserorder", async (req, res) => {
   const { email, month } = req.body;
   console.log(req.body);
