@@ -42,7 +42,6 @@ router.post("/py", async (req, res) => {
 
 //Mediator Login
 router.post("/mediatorlogin", async (req, res) => {
-  console.log('Mediator Login ', req.body);
   const { uemail, upass } = req.body;
   const mediator = await MediatorInfo.findOne({ memail: uemail });
   if (mediator) {
@@ -135,7 +134,7 @@ router.post("/acceptrequest", async (req, res) => {
     const updatedreq = restaurant.requests.filter(req => req.memail !== memail);
     restaurant.requests = updatedreq;
     await restaurant.save();
-    
+
     const { remail, rname, rphone } = restaurant;
     await MediatorInfo.updateOne(
       { memail: memail },
@@ -183,6 +182,19 @@ router.post("/removemediator", async (req, res) => {
     res.status(202).send({ message: 'Error Accured' });
   }
 })
+
+router.post("/removerestaurant", async (req, res) => {
+  const { _id, remail } = req.body;
+  await Restaurantinfo.findOneAndUpdate(
+    { remail: remail },
+    { $set: { mediator: [] } },
+  )
+  await MediatorInfo.findByIdAndUpdate(
+    { _id: _id },
+    { $set: { restaurant: [] } },
+  )
+  res.status(200).send({ message: 'Restaurant Removed' });
+});
 
 
 // Sign Up
@@ -488,9 +500,9 @@ router.post("/saveorder", async (req, res) => {
 //Get Morders
 router.post("/getmedorder", async (req, res) => {
   const { memail } = req.body;
-  console.log('Memial ' , memail)
+  console.log('Memial ', memail)
   const mediator = await MediatorInfo.findOne({ memail: memail });
-  console.log('Media' , mediator);
+  console.log('Media', mediator);
 
   if (mediator && Object.keys(mediator).length > 0) {
     const morders = await mediator.morder;
